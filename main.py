@@ -117,6 +117,9 @@ def main():
             for db_name in failed_databases:
                 logging.warning(f"- {db_name}")
 
+        # Exit with error code to fail the GitHub Action
+        exit(1)
+
     if detailed_status_report and status_report:
         logging.info("\nDetailed Status Report:")
         for status in status_report:
