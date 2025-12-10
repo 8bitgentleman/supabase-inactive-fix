@@ -142,7 +142,7 @@ The easiest way to deploy this project is using GitHub Actions, which runs compl
    - Click "Run workflow" to test it manually
    - Check the logs to ensure everything works
 
-**That's it!** The workflow will automatically run every Monday and Thursday at midnight UTC, keeping your Supabase databases active.
+**That's it!** The workflow will automatically run every 2 days at 9 AM UTC, keeping your Supabase databases active.
 
 > **📝 Note for Existing Users:** If you're currently using a local cron job and pull this update, the GitHub Actions workflow will NOT run automatically. It only activates when you explicitly set the `ENABLE_GITHUB_ACTIONS` variable to `true`. You can:
 > - **Keep using your cron job**: Do nothing, the workflow stays disabled
@@ -155,8 +155,11 @@ Edit `.github/workflows/keep-alive.yml` and modify the cron expression:
 
 ```yaml
 schedule:
-  - cron: '0 0 * * 1,4'  # Currently: Monday and Thursday at midnight UTC
+  - cron: '0 9 */2 * *'  # Currently: Every 2 days at 9 AM UTC
+  # Alternative: '0 9 * * 1,3,5' for Mon/Wed/Fri if you prefer specific days
 ```
+
+**Why every 2 days?** Supabase free-tier projects pause after 7 days of inactivity, but to be safe, we ping every 2 days to ensure we never approach that threshold. The original Mon/Thu schedule (3.5 day gaps) was cutting it too close.
 
 ### Option 2: Local Cron Job
 
@@ -197,17 +200,17 @@ To automate this script, you can create a cron job that runs the script periodic
 ### macOS/Linux
 
 1. Open your crontab file for editing:
-    
+
     ```bash
     crontab -e
     ```
-    
-2. Add a new cron job to run the script every Monday and Thursday at midnight:
-    
+
+2. Add a new cron job to run the script every 2 days at 9 AM:
+
     ```bash
-    0 0 * * 1,4 cd /path/to/your/project && /path/to/your/project/venv/bin/python main.py >> /path/to/your/project/logfile.log 2>&1
+    0 9 */2 * * cd /path/to/your/project && /path/to/your/project/venv/bin/python main.py >> /path/to/your/project/logfile.log 2>&1
     ```
-    
+
 
 This example cron job will:
 
@@ -215,10 +218,10 @@ This example cron job will:
 - Run the Python script using the virtual environment.
 - Append the output to a logfile.
 
-For reference, here’s an example used in development:
+For reference, here's an example used in development:
 
 ```bash
-0 0 * * 1,4 cd /Users/travis/Workspace/supabase-inactive-fix && /Users/travis/Workspace/supabase-inactive-fix/venv/bin/python main.py >> /Users/travis/Workspace/supabase-inactive-fix/logfile.log 2>&1
+0 9 */2 * * cd /Users/travis/Workspace/supabase-inactive-fix && /Users/travis/Workspace/supabase-inactive-fix/venv/bin/python main.py >> /Users/travis/Workspace/supabase-inactive-fix/logfile.log 2>&1
 ```
 
 ### Windows (Task Scheduler)
@@ -226,10 +229,10 @@ For reference, here’s an example used in development:
 Windows does not have cron jobs, but you can achieve similar functionality using Task Scheduler.
 
 1. Open **Task Scheduler** and select **Create Basic Task**.
-    
-2. Name the task and set the trigger to run weekly.
-    
-3. Set the days (e.g., Monday and Thursday) and time (e.g., midnight) when the script should run.
+
+2. Name the task and set the trigger to run daily (or every 2 days if your Task Scheduler version supports it).
+
+3. Set the time (e.g., 9 AM) when the script should run. If daily triggers only, set it to run daily and it will effectively run more frequently than needed (which is safe).
     
 4. In the **Action** step, select **Start a Program**, and point it to your Python executable within your virtual environment. For example:
     
