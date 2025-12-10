@@ -1,5 +1,6 @@
 # services/supabase_service.py
 
+import logging
 from supabase import create_client, Client
 
 
@@ -15,22 +16,24 @@ class SupabaseClient:
         data = {'name': random_name}
         try:
             response = self.client.table(self.table_name).insert(data).execute()
-            print(f"Inserted data into '{self.table_name}': {response.data}")
+            logging.info(f"✓ Successfully inserted entry into '{self.table_name}' (REST API)")
+            logging.debug(f"Response data: {response.data}")
             return True
         except Exception as e:
-            print(f"Error inserting data into '{self.table_name}': {e}")
+            logging.error(f"✗ Error inserting data into '{self.table_name}': {e}")
             return False
 
     def get_table_count(self):
         try:
             response = self.client.table(self.table_name).select('*', count='exact').execute()
             if response.count is not None:
+                logging.info(f"✓ Retrieved count from '{self.table_name}' via REST API: {response.count} entries")
                 return response.count
             else:
-                print(f"Could not retrieve count from '{self.table_name}'.")
+                logging.warning(f"Could not retrieve count from '{self.table_name}'.")
                 return None
         except Exception as e:
-            print(f"Error counting data in '{self.table_name}': {e}")
+            logging.error(f"✗ Error counting data in '{self.table_name}': {e}")
             return None
 
     def delete_random_entry(self):
@@ -40,7 +43,7 @@ class SupabaseClient:
             if response.data:
                 ids = [item['id'] for item in response.data]
                 if not ids:
-                    print(f"No entries to delete in '{self.table_name}'.")
+                    logging.info(f"No entries to delete in '{self.table_name}'.")
                     return True  # No deletion needed, but not an error
 
                 # Randomly select one ID to delete
@@ -49,11 +52,11 @@ class SupabaseClient:
 
                 # Delete the entry with the selected ID
                 self.client.table(self.table_name).delete().eq('id', random_id).execute()
-                print(f"Deleted entry with id {random_id} from '{self.table_name}'.")
+                logging.info(f"✓ Successfully deleted entry (id: {random_id}) from '{self.table_name}' via REST API")
                 return True
             else:
-                print(f"No data retrieved from '{self.table_name}'.")
+                logging.warning(f"No data retrieved from '{self.table_name}'.")
                 return False
         except Exception as e:
-            print(f"Error deleting data from '{self.table_name}': {e}")
+            logging.error(f"✗ Error deleting data from '{self.table_name}': {e}")
             return False
